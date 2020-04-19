@@ -1,38 +1,43 @@
 import datetime
 import time
 import bisect
-from collections import OrderedDict
 
 class Structure:
     
+    # CREATE DICTIONARY FOR MEMORY AND "TIME TO CHECK"
     def __init__(self):
         self.memoryDictionary = {}
         self.timeDictionary = {}
         self.setDictionary = {}
 
-    def setKey(self,key,value):    
+    # SET THE KEY-VALUE PAIR IN MEMORY DICTIONARY, THE TIME TO KEEP A PARTICULAR KEY
+    def SET(self,key,value):    
         self.memoryDictionary[key] = value
         self.timeDictionary[key] = "UNL"
 
-    def expireKey(self,key,time):
+
+    # USING LAZY-DELETION HERE TO CHECK FOR THE TIME TILL A KEY WOULD BE PRESENT
+
+    def EXPIRE(self,key,time):
         expirationTime = datetime.datetime.now() + datetime.timedelta(seconds=time)
         self.timeDictionary[key] = expirationTime
         
-    
-    def getKey(self,key):
+    # GET THE VALUE OF A KEY, NEED TO CHECK FOR THE TIME TILL VALUE WAS PRESENT
+    def GET(self,key):
         value = self.memoryDictionary.get(key)
         if(value == None):
             return "Nil"
         if(self.timeDictionary.get(key) == 'UNL'):
             return value
         elif self.timeDictionary.get(key) < datetime.datetime.now():
-            self.memoryDictionary.pop(key)
+            self.memoryDictionary.pop(key)              # POPING THE KEY-VALUE AS IT WILL NOT BE REQUIRED
             self.timeDictionary.pop(key)
             return 'Nil'
         else:
             return value
-
-    def zaddSet(self,zSet,score,key):
+    
+    # ADDING THE SETS WITH SCORES 
+    def ZADD(self,zSet,score,key):
         if self.memoryDictionary.get(zSet) == None:
             self.memoryDictionary[zSet] = {}
             self.timeDictionary[zSet] = 'UNL'
@@ -40,7 +45,6 @@ class Structure:
             self.setDictionary[zSet] = {score:[key]}
         
         else:
-            # bisect.insort(self.memoryDictionary[zSet][key] , value)
             if self.setDictionary[zSet].get(score) == None:
                 self.setDictionary[zSet][score] = []
 
@@ -50,7 +54,9 @@ class Structure:
 
         return 1
 
-    def zRank(self,zSet,key):
+    # EXTRACTING RANK FROM TWO DIFFERENT DICTIONARIES ONE IS FOR MEMORY AND OTHER IS FOR SKIP-LIST
+
+    def ZRANK(self,zSet,key):
         if self.memoryDictionary.get(zSet) == None:
             return 'Nil'
         else:
@@ -63,9 +69,11 @@ class Structure:
                 if(x == score):
                     break
                 i+=1
-            return i
+            return 
+            
 
-    def zRange(self,zSet,start,end):
+    # GETTING DATA BASED ON SCORES
+    def ZRANGE(self,zSet,start,end):
         if self.memoryDictionary.get(zSet) == None:
             return 'Nil'
         else:
@@ -81,16 +89,19 @@ class Structure:
             elif start < 0:
                 return list1[start:end+1]
 
+
+
+# STUB-CODE TO TEST THE FUNCTIONALITIES
 def main():
     obj = Structure()
-    obj.setKey("abc",123)
-    obj.setKey("inf",45456)
-    obj.zaddSet("myset",1,'orange')
-    obj.zaddSet("myset",1,'apple')
-    obj.zaddSet("myset",2,"three")
-    print(obj.zRank("myset","three"))
-    print(obj.getKey('myset'))
-    print(obj.zRange("myset",-2,-1))
+    obj.SET("abc",123)
+    obj.SET("inf",45456)
+    obj.ZADD("myset",1,'orange')
+    obj.ZADD("myset",1,'apple')
+    obj.ZADD("myset",2,"three")
+    print(obj.ZRANK("myset","three"))
+    print(obj.GET('myset'))
+    print(obj.ZRANGE("myset",-2,-1))
 
 
 
